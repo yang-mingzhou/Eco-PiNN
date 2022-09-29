@@ -1,7 +1,5 @@
 import torch
 from torch import nn
-import torch.nn.functional as F
-#from node2vec import N2V
 import pickle
 from torch_geometric.nn import Node2Vec
 
@@ -24,20 +22,19 @@ class PositionwiseFeedForward(nn.Module):
     def __init__(self, d_model, d_ff = 32):
         super(PositionwiseFeedForward, self).__init__()
         # Torch linears have a `b` by default.
-        self.net_dropped = torch.nn.Sequential(
+        self.net = torch.nn.Sequential(
             nn.Linear(d_model, d_ff),
             nn.ReLU(),
             nn.Linear(d_ff, d_model),
         )
-
     def forward(self, x):
-        return self.net_dropped(x)
+        return self.net(x)
 
 
-class Pigat(nn.Module):
+class CiEncoder(nn.Module):
 
     def __init__(self, feature_dim, embedding_dim, num_heads, output_dimension,n2v_dim,window_size,attention_dim = 64):
-        super(Pigat, self).__init__()
+        super(CiEncoder, self).__init__()
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         #self.n2v = N2V('node2vec.mdl')
         open_file = open("edge_index.pkl", "rb")
@@ -94,10 +91,6 @@ class Pigat(nn.Module):
         embedded_endpoint_v = self.embedding_endpoint_v(c[:, 6, :])
         '''
 
-        #print(id.view(id.shape[0], id.shape[1]*id.shape[2]).shape)
-        # segmentEmbed_0 = self.n2v(id[:, 0]).unsqueeze(1)
-        # segmentEmbed_1 = self.n2v(id[:, 1]).unsqueeze(1)
-        # segmentEmbed_2 = self.n2v(id[:, 2]).unsqueeze(1)
         # [batch, window size, node2vec]
         segmentEmbed  = torch.cat([self.n2v(id[:, i]).unsqueeze(1) for i in range(id.shape[1])], dim=1)
         #print('segmentEmbed', segmentEmbed.shape)
@@ -111,14 +104,6 @@ class Pigat(nn.Module):
         embedded5 = self.embedding_endpoint_u(c[:, 5, :])
         embedded6 = self.embedding_endpoint_v(c[:, 6, :])
 
-        # embedded = torch.cat([embedded, self.embedding_time_stage(c[:, 1, :])], dim=-1)
-        # embedded = torch.cat([embedded, self.embedding_week_day(c[:, 2, :])], dim=-1)
-        # embedded = torch.cat([embedded, self.embedding_lanes(c[:, 3, :])], dim=-1)
-        # embedded = torch.cat([embedded, self.embedding_bridge(c[:, 4, :])], dim=-1)
-        # embedded = torch.cat([embedded, self.embedding_endpoint_u(c[:, 5, :])], dim=-1)
-        # embedded_6 = self.embedding_endpoint_v(c[:, 6, :])
-        #embedded = torch.cat([embedded0,embedded1,embedded2,embedded3,embedded4,embedded5,embedded6], dim=-1)
-
         # [ batch, window size, feature dimension+ sum embedding dimension + node2vec]
         x = torch.cat([x, embedded0,embedded1,embedded2,embedded3,embedded4,embedded5,embedded6, segmentEmbed], dim=-1)
         # [ window size, batch,  feature dimension+ sum embedding dimension]
@@ -126,25 +111,20 @@ class Pigat(nn.Module):
         # q -> [1, batch, feature dimension+ sum embedding dimension]
         # middle of the window
         q = x[self.middleOfTheWindow, :, :].unsqueeze(0)
-        # q = F.relu(self.linearq(q))
-        # x = F.relu(self.linearx(x))
         # x -> [windowsz, batch, feature dimension+ sum embedding dimension]
 
         x_output, output_weight = self.selfattn(q,x,x)
         # x_output -> [1, batchsz, feature dimension+ sum embedding dimension]
         x_output = self.norm(q+x_output)
-
         x_output_ff = self.feed_forward(x_output.squeeze(0))
         x_output = self.norm(x_output.squeeze(0) + x_output_ff)
         x_output = self.linear(x_output)
-        # offset for velocity profile estimation to avoid 0 velocity
-        # return F.relu(x_output)+0.1
         x_output = self.activate(x_output)
         return x_output
 
 def testNet():
     # test nets
-    net = Pigat(feature_dim=6, embedding_dim=[4, 2, 2, 2, 2, 4, 4], num_heads=1,
+    net = CiEncoder(feature_dim=6, embedding_dim=[4, 2, 2, 2, 2, 4, 4], num_heads=1,
                   output_dimension=60, n2v_dim=32,window_size=3)
     p = sum(map(lambda p: p.numel(), net.parameters()))
     print("number of parameters:", p)

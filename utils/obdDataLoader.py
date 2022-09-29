@@ -1,18 +1,11 @@
-import torch
 import os
 import csv
 from torch.utils.data import Dataset, DataLoader
-import pandas as pd
-import numpy as np
 import networkx as nx
 import osmnx as ox
 import geopandas as gpd
-import torch
 import pickle
-from torch.utils.data.dataset import ConcatDataset
-import math
 import torch
-from torch.utils.data.sampler import RandomSampler
 
 def readGraph():
     '''
@@ -21,7 +14,7 @@ def readGraph():
     :return:
     '''
     percentile = '005'
-    filefold = r'D:/cygwin64/home/26075/workspace/'
+    filefold = r'./'
     network_gdf = gpd.read_file(filefold+'network_'+percentile+'/edges.shp')
     nodes_gdf = gpd.read_file(filefold+'network_'+percentile+'/nodes.shp')
     graph = ox.utils_graph.graph_from_gdfs(nodes_gdf, network_gdf)
@@ -34,7 +27,7 @@ def readGraph():
     graph.update(edges=eNew, nodes=lineGraph.nodes)
     return graph
 
-class ObdData(Dataset):
+class ObdDataLoader(Dataset):
 
     def __init__(self, root="data_normalized", mode="train", fuel = False, percentage=20, window_size=5, path_length=10\
                  , label_dimension=1, pace=5, withoutElevation = False):
@@ -48,7 +41,7 @@ class ObdData(Dataset):
         :param path_length: length of path
         :param label_dimension: if == 2 -> label_list = [energy, time]; if == 1 -> label_list = [energy]
         """
-        super(ObdData, self).__init__()
+        super(ObdDataLoader, self).__init__()
         self.percentage = str(percentage)
         self.root = os.path.join(root, self.percentage)
         self.mode = mode
@@ -198,58 +191,3 @@ class ObdData(Dataset):
 
 
 
-def testDataloader():
-    batch_size = 8
-    # test dataloader
-    db_time = ObdData("model_data_newOct", "train", fuel=False, percentage=10, label_dimension=1,withoutElevation=False)
-    db_fuel = ObdData("model_data_newOct", "train", fuel=True, percentage=10, label_dimension=1, withoutElevation=False)
-    sampler = torch.utils.data.RandomSampler(db_fuel, replacement=True, num_samples=len(db_time),
-                                             generator=None)
-    #concat_dataset = ConcatDataset([db_time, db_fuel])
-
-
-
-    # print(x,y,d)
-    loader_time = DataLoader(db_time, batch_size= batch_size, shuffle= False, num_workers=0)
-    loader_fuel = DataLoader(db_fuel, batch_size= batch_size, sampler = sampler, shuffle=False, num_workers=0)
-    for (x,y,c,id),(x_f,y_f,c_f,id_f) in zip(loader_time,loader_fuel):
-        # x: numerical features [batch, path length, window size, feature dimension]
-        # y: label [batch, path length, window size, (label dimension)]
-        # c: categorical features [batch, number of categorical features, path length, window size]
-        # id: node2vec [batch, path length, window size]
-        print(x.shape, y.shape,c.shape,id.shape)
-        print(x_f.shape, y_f.shape,c_f.shape,id_f.shape)
-        print(id)
-        print(id_f)
-        print(y)
-        #t = torch.tensor([1, 0.01]).unsqueeze(0).to("cuda")
-        #print(t.shape)
-        label = y[:, 0, 5 // 2]
-        print(label.shape)
-        print(label)
-        labelfuel = y_f[:, 0, 5 // 2]
-        print(labelfuel.shape)
-        print(labelfuel)
-        #print(label * t)
-        # c[:,0,:,:] the first categorical features
-        # "road_type", "time_stage", "week_day", "lanes", "bridge", "endpoint_u", "endpoint_v"
-        print(c[:,:,0,:])
-        print(c[:, :, 0, :].shape)
-        # [batch, path length, window size, feature dimension]
-        # data shape: torch.Size([32, 10, 5, 8]) label shape: torch.Size([32, 10, 5, 2])
-        print("data shape:", x.shape, "label shape:", y.shape)
-        # [batch, window size, feature dimension]
-        x_one_path = x[:,0,:,:]
-        # [window size, batch ,feature dimension]
-        x_one_path = x_one_path.transpose(0,1).contiguous()
-        print(x_one_path.shape)
-        # print(x_one_path)
-        break
-    
-    
-
-
-
-
-if __name__ == "__main__":
-    testDataloader()

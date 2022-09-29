@@ -32,8 +32,8 @@ class Params:
         self.beta_2= 0.98
         self.eps= 1e-9
         self.patienceOfTrainingEpochs= 10  # Number of epochs with no improvement after which training stage will be ended
-        self.ckpt_path = os.path.join(os.getcwd(), r"multitaskModels/pinnMultihead.mdl")
-        self.data_root = "ExpDataset/recursion11"
+        self.ckpt_path = os.path.join(os.getcwd(), r"../ecoPiNN.mdl")
+        self.data_root = "ExpDataset/recursion1"
         self.output_root = "prediction_result.csv"
         self.pathLossWeight = 1
 
