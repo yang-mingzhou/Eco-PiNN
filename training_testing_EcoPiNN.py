@@ -204,7 +204,7 @@ def trainTest(mode, output = False):
 
 
 if __name__ == '__main__':
-    # mode= "train" / "test"
+    # mode= "train" or "test"
     trainTest(input("mode="), output = False)
 
 
