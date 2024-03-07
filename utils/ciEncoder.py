@@ -19,7 +19,7 @@ class LayerNorm(nn.Module):
 
 class PositionwiseFeedForward(nn.Module):
     "Implements FFN equation."
-    def __init__(self, d_model, d_ff = 32):
+    def __init__(self, d_model, d_ff = 64):
         super(PositionwiseFeedForward, self).__init__()
         # Torch linears have a `b` by default.
         self.net = torch.nn.Sequential(
