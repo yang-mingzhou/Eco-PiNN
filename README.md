@@ -1,4 +1,4 @@
-# Eco-PiNN: A Physics-informed Neural Network for Eco-toll Estimation
+# [Eco-PiNN: A Physics-informed Neural Network for Eco-toll](https://epubs.siam.org/doi/abs/10.1137/1.9781611977653.ch94)
 
 ## Abstract:
 
