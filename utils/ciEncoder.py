@@ -35,15 +35,17 @@ class CiEncoder(nn.Module):
 
     def __init__(self, feature_dim, embedding_dim, num_heads, output_dimension,n2v_dim,window_size,attention_dim = 64):
         super(CiEncoder, self).__init__()
+        
+
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        #self.n2v = N2V('node2vec.mdl')
-        open_file = open("edge_index.pkl", "rb")
+        open_file = open("pretrainedModels/edge_index.pkl", "rb")
         edge_index = pickle.load(open_file)
         open_file.close()
         self.n2v = Node2Vec(edge_index, embedding_dim=32, walk_length=20,
                               context_size=10, walks_per_node=10,
                               num_negative_samples=1, p=1, q=1, sparse=True)
-
+        self.n2v.load_state_dict(torch.load('pretrainedModels/node2vec.mdl'))
+        
         self.attention_dim = attention_dim
         self.embedding_dim = embedding_dim
         self.feature_dim = feature_dim

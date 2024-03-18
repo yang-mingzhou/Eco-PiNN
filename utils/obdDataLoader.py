@@ -7,25 +7,6 @@ import geopandas as gpd
 import pickle
 import torch
 
-def readGraph():
-    '''
-    :param
-        'dual': segment -> node; intersection -> edge
-    :return:
-    '''
-    percentile = '005'
-    filefold = r'./'
-    network_gdf = gpd.read_file(filefold+'network_'+percentile+'/edges.shp')
-    nodes_gdf = gpd.read_file(filefold+'network_'+percentile+'/nodes.shp')
-    graph = ox.utils_graph.graph_from_gdfs(nodes_gdf, network_gdf)
-    # convert the graph to the dual graph
-    lineGraph = nx.line_graph(graph)
-    # transfer the multiDilineGraph to 2 dimension
-    eNew = [(x[0],x[1]) for x in lineGraph.edges]
-
-    graph = nx.Graph()
-    graph.update(edges=eNew, nodes=lineGraph.nodes)
-    return graph
 
 class ObdDataLoader(Dataset):
 
@@ -43,7 +24,8 @@ class ObdDataLoader(Dataset):
         """
         super(ObdDataLoader, self).__init__()
         self.percentage = str(percentage)
-        self.root = os.path.join(root, self.percentage)
+        #         self.root = os.path.join(root, self.percentage)
+        self.root = root
         self.mode = mode
         self.fuel = fuel
         self.windowsz = window_size
@@ -52,12 +34,10 @@ class ObdDataLoader(Dataset):
         self.pace = pace
         self.len_of_index = 0
         self.withoutElevation = withoutElevation
-        #self.dualGraphNode = list(readGraph().nodes)
-        file_name = "dualGraphNodes.pkl"
+        file_name = "pretrainedModels/dualGraphNodes.pkl"
         open_file = open(file_name, "rb")
         self.dualGraphNode = pickle.load(open_file)
         open_file.close()
-        #print(self.dualGraphNode)
 
 
         if self.withoutElevation == True:

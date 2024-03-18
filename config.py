@@ -6,7 +6,7 @@ class Params:
         self.batchsz = 512  # Batch size.
         self.max_epochs = 1500 # Number of epochs to train for.
         self.lr = 1e-4 # Learning rate.
-        self.lengthOfVelocityProfile = 60  # divide a segment equally into n parts according to the length
+        self.lengthOfVelocityProfile = 128  # divide a segment equally into n parts according to the length
         self.meanOfSegmentLength= 608.2156661
         self.stdOfSegmentLength= 900.4150229
         self.meanOfSegmentHeightChange= -0.063065664
