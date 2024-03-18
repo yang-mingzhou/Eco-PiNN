@@ -49,11 +49,13 @@ We will publish the code for generating the synthetic datasets and the correspon
 
 Cite
 -----
-```@inproceedings{li2023eco,
+```
+@inproceedings{li2023eco,
   title={Eco-pinn: A physics-informed neural network for eco-toll estimation},
   author={Li, Yan and Yang, Mingzhou and Eagon, Matthew and Farhadloo, Majid and Xie, Yiqun and Northrop, William F and Shekhar, Shashi},
   booktitle={Proceedings of the 2023 SIAM International Conference on Data Mining (SDM)},
   pages={838--846},
   year={2023},
   organization={SIAM}
-}```
+}
+```
